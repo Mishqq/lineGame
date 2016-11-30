@@ -4,9 +4,12 @@
 
 		let states = ['default', 'active', 'passive', 'note'];
 
+		let size = 9;
+
 		return {
 			types: types,
-			states: states
+			states: states,
+			size: size
 		}
 	});
 })();

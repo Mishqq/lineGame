@@ -50,8 +50,8 @@
 			let repeatTypes = [];
 
 			// Проверки на горизонтальные и вертикальные совпадения при генерации
-			checkHRep(arr, type, repeatTypes);
-			checkVRep(arr, size, type, repeatTypes);
+			checkHRep(arr, size, repeatTypes);
+			checkVRep(arr, size, repeatTypes);
 
 			if(repeatTypes.length) type = returnAnotherType(repeatTypes);
 
@@ -64,20 +64,24 @@
 		/**
 		 * Проверка на горизонтальное повторение
 		 */
-		function checkHRep(arr, type, repeatTypes){
-			if(arr[arr.length-1] && arr[arr.length-2] &&
-				arr[arr.length-1].type === type && arr[arr.length-2].type === type){
-				repeatTypes.push(type)
+		function checkHRep(arr, size, repeatTypes){
+			let colIdx = arr.length % size;
+			if(colIdx > 1){
+				if(arr[arr.length - 2].type === arr[arr.length - 1].type){
+					repeatTypes.push(arr[arr.length - 1].type)
+				}
 			}
 		}
 
 		/**
 		 * Проверка на вертикальное повторение
 		 */
-		function checkVRep(arr, size, type, repeatTypes){
-			if((arr[arr.length-size] && arr[arr.length-size*2] &&
-				arr[arr.length-size].type === type && arr[arr.length-size*2].type === type)){
-				repeatTypes.push(type);
+		function checkVRep(arr, size, repeatTypes){
+			let rowIdx = Math.floor(arr.length/size);
+			if(rowIdx > 1){
+				if(arr[arr.length - size].type === arr[arr.length - size*2].type){
+					repeatTypes.push(arr[arr.length - size].type)
+				}
 			}
 		}
 
@@ -132,7 +136,142 @@
 				let copyEl = angular.copy(arr[idx1]);
 				arr[idx1] = arr[idx2];
 				arr[idx2] = copyEl;
+
+				this.checkRowElements(arr);
 			}, 200)
+		};
+
+		/**
+		 * Удаляем объекты одинакового типа, если их больше трёх в строке или в колонке
+		 */
+		this.checkRowElements = function(arr){
+			let result = [];
+			let size = drFiledFactory.size;
+
+			// next: for(let i=0; i<arr.length; i+=1){
+			// 	let colIdx = i%size;
+			// 	let rowIdx = Math.floor(i/size);
+			// 	let countInRow = 1;
+			// 	let countInCol = 1;
+			// 	let currentType = arr[i].type;
+			//
+			// 	for(let j=1; j<(size-colIdx); j+=1){
+			// 		if(arr[i+j].type !== currentType) break;
+			// 		countInRow++;
+			// 	}
+			// 	if(countInRow > 2) {
+			// 		let tempArr = [];
+			// 		for(let s=1; s<=countInRow; s+=1) tempArr.push(i+s)
+			// 		result.push({
+			// 			length: countInRow,
+			// 			type: currentType,
+			// 			idxArr: tempArr
+			// 		});
+			// 	}
+			//
+			// 	for(let k=1; k<(size-rowIdx); k+=1){
+			// 		if(arr[i+size*k].type !== currentType) break;
+			// 		countInCol++;
+			// 	}
+			// 	if(countInCol > 2) {
+			// 		let tempArr = [];
+			// 		for(let s=0; s<countInCol; s+=1) tempArr.push(i+size*s)
+			// 		result.push({
+			// 			length: countInCol,
+			// 			type: currentType,
+			// 			idxArr: tempArr
+			// 		});
+			// 	}
+			//
+			// 	countInRow = countInCol = 0;
+			// }
+
+			countRepeatInRow(arr, result, size);
+			countRepeatInCol(arr, result, size);
+
+			console.log('---=== result ===---', result);
+		};
+
+		function countRepeatInRow(arr, result, size){
+			next: for(let i=0; i<arr.length; i+=1){
+				let colIdx = i%size;
+				let countInRow = 1;
+				let currentType = arr[i].type;
+
+				for(let j=1; j<(size-colIdx); j+=1){
+					if(arr[i+j].type !== currentType) break;
+					countInRow++;
+				}
+				if(countInRow > 2) {
+					let tempArr = [];
+					for(let s=1; s<=countInRow; s+=1) tempArr.push(i+s)
+					result.push({
+						length: countInRow,
+						type: currentType,
+						idxArr: tempArr
+					});
+					i+= countInRow-1;
+					countInRow = 0;
+					continue next;
+				}
+				countInRow = 0;
+			}
+		}
+
+		function countRepeatInCol(arr, result, size){
+			next: for(let count=0,i=0; i<arr.length; i+=size){
+				let rowIdx = Math.floor(i/size);
+				let countInCol = 1;
+				let currentType = arr[i].type;
+
+				console.log('---=== i ===---', i);
+
+				for(let j=0; j<(size-rowIdx); j+=1){
+					// if(arr[i+size*j].type !== currentType) break;
+					// countInCol++;
+				}
+				// if(countInCol > 2) console.log('---=== countInCol ===---', countInCol);
+				// if(countInCol > 2) {
+				// 	let tempArr = [];
+				// 	for(let s=1; s<=countInCol; s+=1) tempArr.push(i+s)
+				// 	result.push({
+				// 		length: countInCol,
+				// 		type: currentType,
+				// 		idxArr: tempArr
+				// 	});
+				// 	i+= countInCol-1;
+				// 	countInCol = 0;
+				// 	continue next;
+				// }
+				countInCol = 0;
+
+				// Шагаем вертикально
+				if(Math.floor(i/size)+1 === size) {
+					count++;
+					i=count-size;
+				}
+			}
+
+			// next: for(let i=0; i<arr.length; i+=1){
+			// 	let rowIdx = Math.floor(i/size);
+			// 	let countInCol = 1;
+			// 	let currentType = arr[i].type;
+			//
+			// 	for(let k=1; k<(size-rowIdx); k+=1){
+			// 		if(arr[i+size*k].type !== currentType) break;
+			// 		countInCol++;
+			// 	}
+			// 	if(countInCol > 2) {
+			// 		let tempArr = [];
+			// 		for(let s=0; s<countInCol; s+=1) tempArr.push(i+size*s)
+			// 		result.push({
+			// 			length: countInCol,
+			// 			type: currentType,
+			// 			idxArr: tempArr
+			// 		});
+			// 	}
+			// 	countInCol = 0;
+			// }
 		}
 	}]);
 })();

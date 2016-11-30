@@ -20,6 +20,7 @@
 	class drFieldCtrl{
 		constructor(drFieldService, $scope, $timeout){
 			this.drFieldService = drFieldService;
+			if(this.size) this.drFieldService.size = this.size;
 			this.$scope = $scope;
 			this.$timeout = $timeout;
 

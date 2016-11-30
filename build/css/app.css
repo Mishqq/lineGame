@@ -45,66 +45,6 @@ table {
   border-collapse: collapse;
   border-spacing: 0; }
 
-@font-face {
-  font-family: "Nexa-Bold";
-  font-style: normal;
-  font-weight: bold;
-  src: url("../fonts/Nexa-Bold/Nexa-Bold.eot?") format("eot"), url("../fonts/Nexa-Bold/Nexa-Bold.otf") format("otf"), url("../fonts/Nexa-Bold/Nexa-Bold.woff") format("woff"), url("../fonts/Nexa-Bold/Nexa-Bold.ttf") format("truetype"), url("../fonts/Nexa-Bold/Nexa-Bold.svg#Nexa-Bold") format("svg"); }
-
-@font-face {
-  font-family: "NexaSlab-xBold";
-  font-style: normal;
-  font-weight: normal;
-  src: url("../fonts/NexaSlab-xBold/NexaSlab-xBold.eot?") format("eot"), url("../fonts/NexaSlab-xBold/NexaSlab-xBold.otf") format("otf"), url("../fonts/NexaSlab-xBold/NexaSlab-xBold.woff") format("woff"), url("../fonts/NexaSlab-xBold/NexaSlab-xBold.ttf") format("truetype"), url("../fonts/NexaSlab-xBold/NexaSlab-xBold.svg#NexaSlab-xBold") format("svg"); }
-
-@font-face {
-  font-family: "ProximaNova-Light";
-  font-style: normal;
-  font-weight: 300;
-  src: url("../fonts/ProximaNova-Light/ProximaNova-Light.eot?") format("eot"), url("../fonts/ProximaNova-Light/ProximaNova-Light.otf") format("otf"), url("../fonts/ProximaNova-Light/ProximaNova-Light.woff") format("woff"), url("../fonts/ProximaNova-Light/ProximaNova-Light.ttf") format("truetype"), url("../fonts/ProximaNova-Light/ProximaNova-Light.svg#ProximaNova-Light") format("svg"); }
-
-@font-face {
-  font-family: "ProximaNova-Semibold";
-  font-style: normal;
-  font-weight: bold;
-  src: url("../fonts/ProximaNova-Semibold/ProximaNova-Semibold.eot?") format("eot"), url("../fonts/ProximaNova-Semibold/ProximaNova-Semibold.otf") format("otf"), url("../fonts/ProximaNova-Semibold/ProximaNova-Semibold.woff") format("woff"), url("../fonts/ProximaNova-Semibold/ProximaNova-Semibold.ttf") format("truetype"), url("../fonts/ProximaNova-Semibold/ProximaNova-Semibold.svg#ProximaNova-Semibold") format("svg"); }
-
-@font-face {
-  font-family: "MyriadProBold";
-  font-style: normal;
-  font-weight: bold;
-  src: url("../fonts/MyriadProBold/MyriadProBold.eot?") format("eot"), url("../fonts/MyriadProBold/MyriadProBold.otf") format("otf"), url("../fonts/MyriadProBold/MyriadProBold.woff") format("woff"), url("../fonts/MyriadProBold/MyriadProBold.ttf") format("truetype"), url("../fonts/MyriadProBold/MyriadProBold.svg#MyriadProBold") format("svg"); }
-
-@font-face {
-  font-family: "MyriadProBoldItalic";
-  font-style: italic;
-  font-weight: bold;
-  src: url("../fonts/MyriadProBoldItalic/MyriadProBoldItalic.eot?") format("eot"), url("../fonts/MyriadProBoldItalic/MyriadProBoldItalic.otf") format("otf"), url("../fonts/MyriadProBoldItalic/MyriadProBoldItalic.woff") format("woff"), url("../fonts/MyriadProBoldItalic/MyriadProBoldItalic.ttf") format("truetype"), url("../fonts/MyriadProBoldItalic/MyriadProBoldItalic.svg#MyriadProBoldItalic") format("svg"); }
-
-@font-face {
-  font-family: "MyriadProItalic";
-  font-style: italic;
-  font-weight: normal;
-  src: url("../fonts/MyriadProItalic/MyriadProItalic.eot?") format("eot"), url("../fonts/MyriadProItalic/MyriadProItalic.otf") format("otf"), url("../fonts/MyriadProItalic/MyriadProItalic.woff") format("woff"), url("../fonts/MyriadProItalic/MyriadProItalic.ttf") format("truetype"), url("../fonts/MyriadProItalic/MyriadProItalic.svg#MyriadProItalic") format("svg"); }
-
-@font-face {
-  font-family: "MyriadProRegular";
-  font-style: normal;
-  font-weight: normal;
-  src: url("../fonts/MyriadProRegular/MyriadProRegular.eot?") format("eot"), url("../fonts/MyriadProRegular/MyriadProRegular.otf") format("otf"), url("../fonts/MyriadProRegular/MyriadProRegular.woff") format("woff"), url("../fonts/MyriadProRegular/MyriadProRegular.ttf") format("truetype"), url("../fonts/MyriadProRegular/MyriadProRegular.svg#MyriadProRegular") format("svg"); }
-
-@font-face {
-  font-family: "MyriadProSemiBold";
-  font-style: normal;
-  font-weight: 400;
-  src: url("../fonts/MyriadProSemiBold/MyriadProSemiBold.eot?") format("eot"), url("../fonts/MyriadProSemiBold/MyriadProSemiBold.otf") format("otf"), url("../fonts/MyriadProSemiBold/MyriadProSemiBold.woff") format("woff"), url("../fonts/MyriadProSemiBold/MyriadProSemiBold.ttf") format("truetype"), url("../fonts/MyriadProSemiBold/MyriadProSemiBold.svg#MyriadProSemiBold") format("svg"); }
-
-@font-face {
-  font-family: "MyriadProSemiBoldItalic";
-  font-style: italic;
-  font-weight: 400;
-  src: url("../fonts/MyriadProSemiBoldItalic/MyriadProSemiBoldItalic.eot?") format("eot"), url("../fonts/MyriadProSemiBoldItalic/MyriadProSemiBoldItalic.otf") format("otf"), url("../fonts/MyriadProSemiBoldItalic/MyriadProSemiBoldItalic.woff") format("woff"), url("../fonts/MyriadProSemiBoldItalic/MyriadProSemiBoldItalic.ttf") format("truetype"), url("../fonts/MyriadProSemiBoldItalic/MyriadProSemiBoldItalic.svg#MyriadProSemiBoldItalic") format("svg"); }
-
 /*
   SASS variables are information about icon's compiled state, stored under its original file name
 
