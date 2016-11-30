@@ -1,0 +1,10 @@
+<ul class="cell-list">
+	<li class="cell-list__item"
+		ng-repeat="(idx, cell) in cf.cells"
+		ng-style="{'left': cell.col*60 + 'px', 'top': cell.row*60 + 'px'}"
+		ng-click="cf.cellCLick($event, cell, idx)">
+
+		<dr-cell type="{{cell.type}}" state="{{cell.state}}"></dr-cell>
+
+	</li>
+</ul>

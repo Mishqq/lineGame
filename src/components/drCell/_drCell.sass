@@ -1,0 +1,95 @@
+$cellFigSize: 40px
+
+$cellSquareColor: coral
+$cellSquareBgColor: aliceblue
+
+$cellCircleColor: rosybrown
+$cellCircleBgColor: aliceblue
+
+$cellTriangleColor: mediumseagreen
+$cellTriangleBgColor: aliceblue
+
+@keyframes activeState
+	0%
+		background-color: $cellCircleBgColor
+	50%
+		background-color: lightblue
+	100%
+		background-color: $cellCircleBgColor
+
+@keyframes passiveState
+	0%
+		background-color: $cellCircleBgColor
+	50%
+		background-color: rgba(173, 216, 230, .5)
+	100%
+		background-color: $cellCircleBgColor
+
+@keyframes noteState
+	0%
+		background-color: $cellCircleBgColor
+	50%
+		background-color: lightblue
+		opacity: .5
+	100%
+		background-color: $cellCircleBgColor
+
+.dr-cell,
+dr-cell,
+[dr-cell]
+	display: inline-block
+	vertical-align: top
+	position: relative
+
+.cell
+	display: block
+	position: relative
+	padding: 10px
+	width: 60px
+	height: 60px
+	box-sizing: border-box
+	cursor: pointer
+
+	&_type-square
+		background-color: $cellSquareBgColor
+	&_type-circle
+		background-color: $cellCircleBgColor
+	&_type-triangle
+		background-color: $cellTriangleBgColor
+
+	&_state-active
+		animation: activeState 1.0s linear infinite
+	&_state-passive
+		animation: passiveState 1.0s linear infinite
+	&_state-note
+		animation: noteState 3.0s linear infinite
+
+	&__fig
+		position: absolute
+		top: 50%
+		left: 50%
+		margin-left: -$cellFigSize/2
+		margin-top: -$cellFigSize/2
+		width: $cellFigSize
+		height: $cellFigSize
+		border-radius: 3px
+
+	&_type-square &__fig
+		background-color: $cellSquareColor
+	&_type-circle &__fig
+		border-radius: 50%
+		background-color: $cellCircleColor
+	&_type-triangle &__fig
+		width: 0
+		height: 0
+		margin-left: -($cellFigSize+10px)/2
+		background-color: transparent
+		border-style: solid
+		border-width: 0 ($cellFigSize+10px)/2 $cellFigSize ($cellFigSize+10px)/2
+		border-color: transparent transparent $cellTriangleColor transparent
+
+	&_state
+		&-default
+		&-active
+		&-passive
+		&-note

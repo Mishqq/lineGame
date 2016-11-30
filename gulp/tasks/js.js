@@ -8,23 +8,32 @@ var gulp = require('gulp'),
 	babel = require('gulp-babel'),
 	browserSync = require("browser-sync"),
 	reload = browserSync.reload,
+	browserify = require('gulp-browserify'),
+	es6transpiler = require('gulp-es6-transpiler'),
 	ngAnnotate = require('gulp-ng-annotate'),
+	templateCache = require('gulp-angular-templatecache'),
 	config = require('../config');
 
 gulp.task('js:vendor', () => {
 	gulp.src([
-		'./src/libs/require.js',
-		'./src/libs/jquery-3.1.1.min.js',
-		'./node_modules/jquery-modal/jquery.modal.min.js'
-		// './src/libs/jquery.validate.min.js',
-		// './src/libs/additional-methods.min.js',
-		// './src/libs/localization/messages_ru.min.js'
+		'node_modules/angular/angular.min.js',
+		'node_modules/angular-animate/angular-animate.min.js',
+		'node_modules/angular-aria/angular-aria.min.js',
+		'node_modules/angular-messages/angular-messages.min.js',
+		'node_modules/angular-material/angular-material.min.js',
+		'node_modules/angular-ui-router/release/angular-ui-router.min.js'
 	])
 	.pipe(concat('build/js/vendor.js'))
 	.pipe(gulp.dest('.'))
 });
 
-gulp.task('js:build', function () {
+gulp.task('templateCache', function () {
+	return gulp.src(config.src.html)
+		.pipe(templateCache('templates.js', {module : 'app'}))
+		.pipe(gulp.dest('./src/templates'));
+});
+
+gulp.task('js:build', ['templateCache'], function () {
 	return gulp.src(config.src.js)
 	.pipe(babel({
 		presets: ['es2015']

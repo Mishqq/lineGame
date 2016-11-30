@@ -8,6 +8,7 @@ var gulp = require('gulp'),
 	browserSync = require("browser-sync"),
 	reload = browserSync.reload,
 	sass = require('gulp-sass'),
+	sassGlob = require('gulp-sass-glob'),
 	spritesmith = require('gulp.spritesmith'),
 	config = require('../config');
 
@@ -32,13 +33,10 @@ gulp.task('sprite', ()=>{
 
 gulp.task('style:build', ['sprite'], ()=>{
 	gulp.src(config.src.style)
-		.pipe(sourcemaps.init())
-		.pipe(sass(
-			{outputStyle: 'compressed'}
-		).on('error', sass.logError))
+		.pipe(sassGlob())
+		.pipe(sass().on('error', sass.logError))
 		.pipe(concat('build/css/app.css'))
 		.pipe(prefixer())
-		.pipe(sourcemaps.write())
 		.pipe(gulp.dest('.'))
 		.pipe(reload({stream: true}));
 });

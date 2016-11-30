@@ -5,7 +5,9 @@ var gulp = require('gulp'),
 		config = require('../config');
 
 gulp.task('watch', function(){
-	gulp.watch(config.watch.html, ['html:build']);
+	// gulp.watch(config.watch.html, ['html:build']);
+
+	gulp.watch(config.watch.html, ['js:build']);
 
 	gulp.watch(config.watch.style, ['style:build']);
 

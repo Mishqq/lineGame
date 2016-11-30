@@ -9,7 +9,7 @@ module.exports = {
   },
   src: {
     html: './src/components/**/*.html',
-    js: ['./src/scripts/*.js'],
+    js: ['./src/modules/app.js', './src/modules/*.js', './src/templates/*.js', './src/*.js', 'src/**/*.js'],
     style: ['./src/style/main.sass'], // Плохо, но пока ладно. Иначе два раза компилит стили (из-за импорта)
     img: './src/img/**/*.*',
     font: ['./src/fonts/**/*.otf',
