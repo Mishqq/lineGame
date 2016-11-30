@@ -18,8 +18,10 @@
 	}]);
 
 	class drFieldCtrl{
-		constructor(drFieldService){
+		constructor(drFieldService, $scope, $timeout){
 			this.drFieldService = drFieldService;
+			this.$scope = $scope;
+			this.$timeout = $timeout;
 
 			this.init();
 		}
@@ -39,38 +41,32 @@
 			e.preventDefault();
 			e.stopPropagation();
 
-			if(!this.activeCell) this.activeCell = cell;
-
-			let state, currentState;
-
-			if(cell.state === 'passive'){
-				let coords_1 = {col: this.activeCell.col, row: this.activeCell.row};
-				let coords_2 = {col: cell.col, row: cell.row};
-
-				this.activeCell.col = coords_2.col;
-				this.activeCell.row = coords_2.row;
-
-				cell.col = coords_1.col;
-				cell.row = coords_1.row;
-				return;
-			}
-
-			if(this.activeCell == this.cells[idx]){
-				// Клик по той же ячейке, меняем состояние на противоположное
-				this.activeCell.state = (this.activeCell.state === 'active') ? 'default' : 'active';
-				currentState = (this.activeCell.state === 'active');
-			} else {
-				// Клик по другой ячейке
+			if(cell.state === 'default'){
+				// Клик по ячейке с дефолтным статусом. Делаем её активной и выделяем пассивом ближайшие ячейки
 				for(let i=0; i<this.cells.length; i+=1) this.cells[i].state = 'default';
-				cell.state = 'active';
-				currentState = (cell.state === 'active');
+				this.activeCell = cell;
+				this.activeCell.state = 'active';
+				this.activeCellIdx = idx;
+				this.drFieldService.markClosestCell(this.cells, this.size, idx, 'passive');
+			} else if(cell.state === 'passive'){
+				// Клик по ячейке с пассивным статусом
+				this.drFieldService.replaceElements(this.cells, this.activeCellIdx, idx);
+				this.$timeout(()=>{
+					for(let i=0; i<this.cells.length; i+=1) this.cells[i].state = 'default';
+					// this.activeCell = cell;
+					// this.activeCell.state = 'active';
+					// this.activeCellIdx = idx;
+					// this.drFieldService.markClosestCell(this.cells, this.size, idx, 'passive');
+				}, 200);
+			} else if(cell.state === 'active'){
+				// Клик по ячейке с активным статусом. Снимаем активность с неё и ближайших
+				cell.state = 'default';
+				this.activeCell = undefined;
+				this.activeCellIdx = undefined;
+				this.drFieldService.markClosestCell(this.cells, this.size, idx, 'default');
 			}
-
-			state = currentState ? 'passive' : 'default';
-			this.drFieldService.markClosestCell(this.cells, this.size, idx, state);
-			this.activeCell = cell;
 		}
 	}
 
-	drFieldCtrl.$inject = ['drFieldService'];
+	drFieldCtrl.$inject = ['drFieldService', '$scope', '$timeout'];
 })();
