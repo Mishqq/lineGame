@@ -44,7 +44,7 @@
 		 * - если типы двух объектов над текузим равны текущему сгенерированному типу, то генерируем новый
 		 * @param arr
 		 */
-		function createElement(arr, size){
+		function createElement(arr, size, idx){
 			let type = returnRandElement(drFiledFactory.types);
 
 			let repeatTypes = [];
@@ -56,6 +56,7 @@
 			if(repeatTypes.length) type = returnAnotherType(repeatTypes);
 
 			arr.push({
+				id: idx,
 				type: type,
 				state: 'default'
 			})
@@ -85,6 +86,64 @@
 			}
 		}
 
+		/**
+		 * Функция проверяет на горизонтальные совпадения
+		 */
+		function countRepeatInRow(arr, result, size){
+			next: for(let i=0; i<arr.length; i+=1){
+				let colIdx = i%size;
+				let countInRow = 1;
+				let currentType = arr[i].type;
+
+				for(let j=1; j<(size-colIdx); j+=1){
+					if(arr[i+j].type !== currentType) break;
+					countInRow++;
+				}
+				if(countInRow > 2) {
+					let tempArr = [];
+					for(let s=0; s<countInRow; s+=1) tempArr.push(i+s)
+					result.push({
+						length: countInRow,
+						type: currentType,
+						idxArr: tempArr
+					});
+					i+= countInRow-1;
+					countInRow = 0;
+					continue next;
+				}
+				countInRow = 0;
+			}
+		}
+
+		/**
+		 * Функция проверяет на вертикальные совпадения
+		 */
+		function countRepeatInCol(arr, result, size){
+			next: for(let count=0,i=0; i<arr.length; i+=1){
+				if(i > 0 && i%size === 0) count++;
+				let rowIdx = (i%size)*size + count;
+				let countInCol = 1;
+				let currentType = arr[rowIdx].type;
+
+				for(let j=1; j<(size-rowIdx/size); j+=1){
+					if(arr[rowIdx+size*j].type !== currentType) break;
+					countInCol++;
+				}
+				if(countInCol > 2) {
+					let tempArr = [];
+					for(let s=0; s<countInCol; s+=1) tempArr.push(rowIdx+size*s)
+					result.push({
+						length: countInCol,
+						type: currentType,
+						idxArr: tempArr
+					});
+					i+= countInCol-1;
+					countInCol = 0;
+					continue next;
+				}
+				countInCol = 0;
+			}
+		}
 
 		/**
 		 * =================================================================== public methods ===========================================================
@@ -97,7 +156,7 @@
 			let arr = [];
 
 			for(let i=0; i<size*size; i++)
-				createElement(arr, size);
+				createElement(arr, size, i);
 
 			setCoordsToElements(arr, size);
 
@@ -137,141 +196,42 @@
 				arr[idx1] = arr[idx2];
 				arr[idx2] = copyEl;
 
-				this.checkRowElements(arr);
+				let delLines = this.checkRowElements(arr);
+
+				this.deleteElements(arr, delLines);
+
 			}, 200)
 		};
 
 		/**
-		 * Удаляем объекты одинакового типа, если их больше трёх в строке или в колонке
+		 * Проверяем на объекты одинакового типа в строках
 		 */
 		this.checkRowElements = function(arr){
 			let result = [];
 			let size = drFiledFactory.size;
 
-			// next: for(let i=0; i<arr.length; i+=1){
-			// 	let colIdx = i%size;
-			// 	let rowIdx = Math.floor(i/size);
-			// 	let countInRow = 1;
-			// 	let countInCol = 1;
-			// 	let currentType = arr[i].type;
-			//
-			// 	for(let j=1; j<(size-colIdx); j+=1){
-			// 		if(arr[i+j].type !== currentType) break;
-			// 		countInRow++;
-			// 	}
-			// 	if(countInRow > 2) {
-			// 		let tempArr = [];
-			// 		for(let s=1; s<=countInRow; s+=1) tempArr.push(i+s)
-			// 		result.push({
-			// 			length: countInRow,
-			// 			type: currentType,
-			// 			idxArr: tempArr
-			// 		});
-			// 	}
-			//
-			// 	for(let k=1; k<(size-rowIdx); k+=1){
-			// 		if(arr[i+size*k].type !== currentType) break;
-			// 		countInCol++;
-			// 	}
-			// 	if(countInCol > 2) {
-			// 		let tempArr = [];
-			// 		for(let s=0; s<countInCol; s+=1) tempArr.push(i+size*s)
-			// 		result.push({
-			// 			length: countInCol,
-			// 			type: currentType,
-			// 			idxArr: tempArr
-			// 		});
-			// 	}
-			//
-			// 	countInRow = countInCol = 0;
-			// }
-
 			countRepeatInRow(arr, result, size);
 			countRepeatInCol(arr, result, size);
 
-			console.log('---=== result ===---', result);
+			return result;
 		};
 
-		function countRepeatInRow(arr, result, size){
-			next: for(let i=0; i<arr.length; i+=1){
-				let colIdx = i%size;
-				let countInRow = 1;
-				let currentType = arr[i].type;
+		/**
+		 * Удаляем объекты одинакового типа, если их больше трёх в строке или в колонке
+		 */
+		this.deleteElements = function(arr, delArr){
+			for(let i=0; i<delArr.length; i+=1){
+				let line = delArr[i];
 
-				for(let j=1; j<(size-colIdx); j+=1){
-					if(arr[i+j].type !== currentType) break;
-					countInRow++;
+				for(let j=0; j<line.idxArr.length; j+=1){
+					let delIdx = line.idxArr[j];
+					arr[delIdx].type = 'empty';
+					// delete arr[delIdx];
 				}
-				if(countInRow > 2) {
-					let tempArr = [];
-					for(let s=1; s<=countInRow; s+=1) tempArr.push(i+s)
-					result.push({
-						length: countInRow,
-						type: currentType,
-						idxArr: tempArr
-					});
-					i+= countInRow-1;
-					countInRow = 0;
-					continue next;
-				}
-				countInRow = 0;
-			}
-		}
-
-		function countRepeatInCol(arr, result, size){
-			next: for(let count=0,i=0; i<arr.length; i+=size){
-				let rowIdx = Math.floor(i/size);
-				let countInCol = 1;
-				let currentType = arr[i].type;
-
-				console.log('---=== i ===---', i);
-
-				for(let j=0; j<(size-rowIdx); j+=1){
-					// if(arr[i+size*j].type !== currentType) break;
-					// countInCol++;
-				}
-				// if(countInCol > 2) console.log('---=== countInCol ===---', countInCol);
-				// if(countInCol > 2) {
-				// 	let tempArr = [];
-				// 	for(let s=1; s<=countInCol; s+=1) tempArr.push(i+s)
-				// 	result.push({
-				// 		length: countInCol,
-				// 		type: currentType,
-				// 		idxArr: tempArr
-				// 	});
-				// 	i+= countInCol-1;
-				// 	countInCol = 0;
-				// 	continue next;
-				// }
-				countInCol = 0;
-
-				// Шагаем вертикально
-				if(Math.floor(i/size)+1 === size) {
-					count++;
-					i=count-size;
+				for(let j=0; j<arr.length; j+=1){
+					arr[j].state = 'default';
 				}
 			}
-
-			// next: for(let i=0; i<arr.length; i+=1){
-			// 	let rowIdx = Math.floor(i/size);
-			// 	let countInCol = 1;
-			// 	let currentType = arr[i].type;
-			//
-			// 	for(let k=1; k<(size-rowIdx); k+=1){
-			// 		if(arr[i+size*k].type !== currentType) break;
-			// 		countInCol++;
-			// 	}
-			// 	if(countInCol > 2) {
-			// 		let tempArr = [];
-			// 		for(let s=0; s<countInCol; s+=1) tempArr.push(i+size*s)
-			// 		result.push({
-			// 			length: countInCol,
-			// 			type: currentType,
-			// 			idxArr: tempArr
-			// 		});
-			// 	}
-			// 	countInCol = 0;
-			// }
-		}
+		};
 	}]);
 })();
