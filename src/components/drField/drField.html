@@ -1,4 +1,4 @@
-<ul class="cell-list">
+<ul class="cell-list"ng-style="{'width': cf.size*60 + 'px', 'height': cf.size*60 + 'px'}">
 	<li class="cell-list__item"
 		ng-repeat="(idx, cell) in cf.cells track by cell.id"
 		ng-style="{'left': cell.col*60 + 'px', 'top': cell.row*60 + 'px'}"

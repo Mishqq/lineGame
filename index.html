@@ -10,7 +10,44 @@
 <body ng-cloak
 	  ng-controller="mainCtrl as mainCtrl">
 
-	<dr-field size="5" cell-click=""></dr-field>
+	<div class="menu">
+		<div class="menu__title">Новая игра</div>
+		<ul class="menu-list">
+			<li class="menu-list__item">
+				<a href="" ng-click="mainCtrl.newGame($event, 5)">5x5</a>
+			</li>
+			<li class="menu-list__item">
+				<a href="" ng-click="mainCtrl.newGame($event, 7)">7x7</a>
+			</li>
+			<li class="menu-list__item">
+				<a href="" ng-click="mainCtrl.newGame($event, 9)">9x9</a>
+			</li>
+			<li class="menu-list__item">
+				<a href="" ng-click="mainCtrl.newGame($event, 11)">11x11</a>
+			</li>
+		</ul>
+	</div>
+
+	<dr-field size="mainCtrl.drFiledFactory.size" cell-click=""></dr-field>
+
+	<div class="dashboard">
+		<div class="dashboard__row">
+			<div class="dashboard__label">Последние удалённые элементы</div>
+			<div class="dashboard__val">
+				<ul>
+					<li ng-repeat="item in mainCtrl.points.lastDel track by $index" ng-bind="item"></li>
+				</ul>
+			</div>
+		</div>
+		<div class="dashboard__row">
+			<div class="dashboard__label">Очки за последний ход</div>
+			<div class="dashboard__val" ng-bind="mainCtrl.points.lastPoints"></div>
+		</div>
+		<div class="dashboard__row">
+			<div class="dashboard__label">Общее количество очков</div>
+			<div class="dashboard__val" ng-bind="mainCtrl.points.allPoints"></div>
+		</div>
+	</div>
 
 	<script src="build/js/vendor.js"></script>
 	<script src="build/js/app.js"></script>

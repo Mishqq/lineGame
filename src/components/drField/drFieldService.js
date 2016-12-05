@@ -6,6 +6,17 @@
 		let _self = this;
 		this.matrixModel = [];
 		let _mm = this.matrixModel;
+		this.points = {
+			lastDel: [],
+			lastPoints: 0,
+			allPoints: 0,
+		};
+
+		this.reset = function(){
+			this.points.lastDel.length = 0;
+			this.points.lastPoints = 0;
+			this.points.allPoints = 0;
+		};
 
 		/**
 		 * Возвращаем рандомный элемент массива
@@ -47,48 +58,70 @@
 		 * - если типы двух предыдущих объект равны текущему сгенерированному типу, то генерируем новый
 		 * - если типы двух объектов над текузим равны текущему сгенерированному типу, то генерируем новый
 		 */
-		function createElement(idx){
-			let type = returnRandElement(drFiledFactory.types);
-
-			let repeatTypes = [];
-
+		function returnTypeForNewElement(idx){
 			// Проверки на горизонтальные и вертикальные совпадения при генерации
-			checkHRep(repeatTypes);
-			checkVRep(repeatTypes);
+			let repeatTypes = checkDupe(idx);
 
-			if(repeatTypes.length) type = returnAnotherType(repeatTypes);
+			let type = (repeatTypes.length) ?
+				returnAnotherType(repeatTypes) :
+				returnRandElement(drFiledFactory.types);
 
-			_mm.push({
-				id: idx,
-				type: type,
-				state: 'default'
-			})
+			return type;
 		}
 
 		/**
-		 * Проверка на горизонтальное повторение
+		 * Проверка на повторение
 		 */
-		function checkHRep(repeatTypes){
+		function checkDupe(idx){
 			let s = _self.size;
+			let result = [];
+
 			let colIdx = _mm.length % s;
 			if(colIdx > 1){
 				if(_mm[_mm.length - 2].type === _mm[_mm.length - 1].type){
-					repeatTypes.push(_mm[_mm.length - 1].type)
+					result.push(_mm[_mm.length - 1].type)
 				}
 			}
-		}
 
-		/**
-		 * Проверка на вертикальное повторение
-		 */
-		function checkVRep(repeatTypes){
-			let s = _self.size;
 			let rowIdx = Math.floor(_mm.length/s);
 			if(rowIdx > 1){
 				if(_mm[_mm.length - s].type === _mm[_mm.length - s*2].type){
-					repeatTypes.push(_mm[_mm.length - s].type)
+					result.push(_mm[_mm.length - s].type)
 				}
 			}
+
+			// Если минимум третий элемент в строке
+			if((idx - Math.floor(idx/s)*s) > 1){
+				//Если предыдущие два элемента в строке существуют и их типы совпадают, то исключаем тип
+				if(_mm[idx-1] && _mm[idx-2] && _mm[idx-1].type === _mm[idx-2].type) result.push(_mm[idx-1].type)
+			}
+			// Если за ним есть минимум два элемента в строке
+			if((Math.ceil(idx/s)*s - idx) > 1){
+				//Если следующие два элемента в строке существуют и их типы совпадают, то исключаем тип
+				if(_mm[idx+1] && _mm[idx+2] && _mm[idx+1].type === _mm[idx+2].type) result.push(_mm[idx+1].type)
+			}
+			// Если сверху над ним есть минимум два элемента в столбце
+			if(Math.ceil(idx/s) > 2){
+				//Если два элемента сверху в столбце существуют и их типы совпадают, то исключаем тип
+				if(_mm[idx-s] && _mm[idx-s*2] && _mm[idx-s].type === _mm[idx-s*2].type) result.push(_mm[idx-s].type)
+			}
+			// Если снизу под ним есть минимум два элемента в столбце
+			if((s - Math.ceil(idx/s)) > 2){
+				//Если два элемента снизу в столбце существуют и их типы совпадают, то исключаем тип
+				if(_mm[idx+s] && _mm[idx+s*2] && _mm[idx+s].type === _mm[idx+s*2].type) result.push(_mm[idx+s].type)
+			}
+			// Если минимум второй и минимум предпоследний элемент
+			if((idx - Math.floor(idx/s)*s) > 0 && (Math.ceil(idx/s)*s - idx) > 0){
+				// Если типы элементов перед ним и за ним совпадают
+				if(_mm[idx-1] && _mm[idx+1] && _mm[idx-1].type === _mm[idx+1].type) result.push(_mm[idx-1].type)
+			}
+			// Если над ним и под ним есть элементы
+			if(Math.ceil(idx/s) > 1 && (s - Math.ceil(idx/s)) > 1){
+				// Если типы элементов под ним и над ним совпадают
+				if(_mm[idx-s] && _mm[idx+s] && _mm[idx-s].type === _mm[idx+s].type) result.push(_mm[idx-s].type)
+			}
+
+			return result;
 		}
 
 		/**
@@ -164,8 +197,14 @@
 			_mm.length = 0;
 			this.size = size || drFiledFactory.size;
 
-			for(let i=0; i<size*size; i++)
-				createElement(i);
+			for(let i=0; i<size*size; i++){
+				let type = returnTypeForNewElement();
+				_mm.push({
+					id: i,
+					type: type,
+					state: 'default'
+				})
+			}
 
 			setCoordsToElements();
 
@@ -207,11 +246,19 @@
 
 			recurDeleteEl();
 
+			generateNewEl();
 
+			recurDeleteEl(); // временный хак
 		};
 
-		function recurDeleteEl(){
-
+		/**
+		 * Генерируем новые элементы
+		 */
+		function generateNewEl(){
+			for(let i=0; i<_mm.length; i+=1){
+				if(_mm[i].type === 'empty')
+					_mm[i].type = returnTypeForNewElement(i);
+			}
 		}
 
 		/**
@@ -225,6 +272,8 @@
 
 			if(!result.length) return false;
 
+			calculatePointsInfo(result);
+
 			_self.deleteElements(result);
 
 			_self.moveTopEl();
@@ -232,6 +281,17 @@
 			_mm.sort(sortArrByRowCol);
 
 			recurDeleteEl();
+		}
+
+		function calculatePointsInfo(result){
+			_self.points.lastDel.length = 0;
+			for(let i=0; i<result.length; i+=1){
+				let type = result[i].type;
+				let points = drFiledFactory.pointsMap[type] * result[i].length;
+				_self.points.lastPoints = points;
+				_self.points.allPoints += points;
+				_self.points.lastDel.push(result[i].length + ' ' + type);
+			}
 		}
 
 		/**

@@ -9,3 +9,43 @@ ul, li
 	list-style: none
 	padding: 0
 	margin: 0
+
+body
+	padding-top: 40px
+	text-align: center
+
+.menu,
+dr-field,
+.dashboard
+	display: inline-block
+	vertical-align: top
+	text-align: left
+
+
+.menu
+	&__title
+		margin-bottom: 10px
+		font-size: 20px
+	&-list
+		width: 250px
+		&__item
+			display: inline-block
+			vertical-align: top
+			margin: 0 15px 0 0
+
+.dashboard
+	width: 300px
+	&__row
+		margin-bottom: 20px
+	&__label
+		display: inline-block
+		vertical-align: top
+		margin-right: 30px
+		width: 150px
+	&__val
+		display: inline-block
+		vertical-align: top
+		font-weight: bold
+
+dr-field + .dashboard
+	margin-left: 40px
