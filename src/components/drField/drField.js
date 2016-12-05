@@ -18,9 +18,10 @@
 	}]);
 
 	class drFieldCtrl{
-		constructor(drFieldService, $scope, $timeout){
+		constructor(drFieldService, drFiledFactory, $scope, $timeout){
 			this.drFieldService = drFieldService;
-			if(this.size) this.drFieldService.size = this.size;
+			this.drFiledFactory = drFiledFactory;
+			if(this.size) this.drFiledFactory.size = this.size;
 			this.$scope = $scope;
 			this.$timeout = $timeout;
 
@@ -48,10 +49,11 @@
 				this.activeCell = cell;
 				this.activeCell.state = 'active';
 				this.activeCellIdx = idx;
-				this.drFieldService.markClosestCell(this.cells, this.size, idx, 'passive');
+				this.drFieldService.markClosestCell(idx, 'passive');
 			} else if(cell.state === 'passive'){
 				// Клик по ячейке с пассивным статусом
-				this.drFieldService.replaceElements(this.cells, this.activeCellIdx, idx);
+				this.drFieldService.replaceElements(this.activeCellIdx, idx);
+				for(let i=0; i<this.cells.length; i+=1) this.cells[i].state = 'default';
 				this.$timeout(()=>{
 					// this.drFieldService
 					// TODO: по таймауту реализовать слудеющее поведение: перещенный активный элемент остаётся активным на новом месте
@@ -62,10 +64,10 @@
 				cell.state = 'default';
 				this.activeCell = undefined;
 				this.activeCellIdx = undefined;
-				this.drFieldService.markClosestCell(this.cells, this.size, idx, 'default');
+				this.drFieldService.markClosestCell(idx, 'default');
 			}
 		}
 	}
 
-	drFieldCtrl.$inject = ['drFieldService', '$scope', '$timeout'];
+	drFieldCtrl.$inject = ['drFieldService', 'drFiledFactory', '$scope', '$timeout'];
 })();

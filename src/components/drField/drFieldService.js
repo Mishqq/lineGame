@@ -3,6 +3,10 @@
 		/**
 		 * =================================================================== private methods ===========================================================
 		 */
+		let _self = this;
+		this.matrixModel = [];
+		let _mm = this.matrixModel;
+
 		/**
 		 * Возвращаем рандомный элемент массива
 		 */
@@ -17,7 +21,7 @@
 		function returnAnotherType(repeatTypes){
 			let newArr = angular.copy(drFiledFactory.types);
 
-			next: for(let i=0; i<repeatTypes.length; i+=1){
+			for(let i=0; i<repeatTypes.length; i+=1){
 				for(let j=0; j<newArr.length; j+=1){
 					if(repeatTypes[i] === newArr[j]) newArr.splice(j, 1);
 				}
@@ -30,10 +34,10 @@
 		 * Функция проставляет элементым массива координаты (поля "col", "row") в зависимости от
 		 * второго параметра size (ширина массива)
 		 */
-		function setCoordsToElements(arr, size){
-			for(let i=0; i<arr.length; i+=1){
-				arr[i].col = i%size;
-				arr[i].row = Math.floor(i/size);
+		function setCoordsToElements(){
+			for(let i=0; i<_mm.length; i+=1){
+				_mm[i].col = i%_self.size;
+				_mm[i].row = Math.floor(i/_self.size);
 			}
 		}
 
@@ -42,20 +46,19 @@
 		 * При добавлении выполняет две проверки:
 		 * - если типы двух предыдущих объект равны текущему сгенерированному типу, то генерируем новый
 		 * - если типы двух объектов над текузим равны текущему сгенерированному типу, то генерируем новый
-		 * @param arr
 		 */
-		function createElement(arr, size, idx){
+		function createElement(idx){
 			let type = returnRandElement(drFiledFactory.types);
 
 			let repeatTypes = [];
 
 			// Проверки на горизонтальные и вертикальные совпадения при генерации
-			checkHRep(arr, size, repeatTypes);
-			checkVRep(arr, size, repeatTypes);
+			checkHRep(repeatTypes);
+			checkVRep(repeatTypes);
 
 			if(repeatTypes.length) type = returnAnotherType(repeatTypes);
 
-			arr.push({
+			_mm.push({
 				id: idx,
 				type: type,
 				state: 'default'
@@ -65,11 +68,12 @@
 		/**
 		 * Проверка на горизонтальное повторение
 		 */
-		function checkHRep(arr, size, repeatTypes){
-			let colIdx = arr.length % size;
+		function checkHRep(repeatTypes){
+			let s = _self.size;
+			let colIdx = _mm.length % s;
 			if(colIdx > 1){
-				if(arr[arr.length - 2].type === arr[arr.length - 1].type){
-					repeatTypes.push(arr[arr.length - 1].type)
+				if(_mm[_mm.length - 2].type === _mm[_mm.length - 1].type){
+					repeatTypes.push(_mm[_mm.length - 1].type)
 				}
 			}
 		}
@@ -77,11 +81,12 @@
 		/**
 		 * Проверка на вертикальное повторение
 		 */
-		function checkVRep(arr, size, repeatTypes){
-			let rowIdx = Math.floor(arr.length/size);
+		function checkVRep(repeatTypes){
+			let s = _self.size;
+			let rowIdx = Math.floor(_mm.length/s);
 			if(rowIdx > 1){
-				if(arr[arr.length - size].type === arr[arr.length - size*2].type){
-					repeatTypes.push(arr[arr.length - size].type)
+				if(_mm[_mm.length - s].type === _mm[_mm.length - s*2].type){
+					repeatTypes.push(_mm[_mm.length - s].type)
 				}
 			}
 		}
@@ -89,59 +94,62 @@
 		/**
 		 * Функция проверяет на горизонтальные совпадения
 		 */
-		function countRepeatInRow(arr, result, size){
-			next: for(let i=0; i<arr.length; i+=1){
-				let colIdx = i%size;
-				let countInRow = 1;
-				let currentType = arr[i].type;
+		function countRepeatInRow(result){
+			let size = _self.size;
 
-				for(let j=1; j<(size-colIdx); j+=1){
-					if(arr[i+j].type !== currentType) break;
-					countInRow++;
+			for(let i=0; i<_mm.length; i+=size){
+				let delIdxArr=[i], currentType = _mm[i].type;
+
+				next: for(let j=1; j<size; j+=1){
+					if(_mm[i+j].type === 'empty' || currentType !== _mm[i+j].type){
+						if(delIdxArr.length > 2) break;
+						delIdxArr.length = 0;
+						delIdxArr.push(i+j);
+						currentType = _mm[i+j].type;
+						continue next;
+					} else {
+						delIdxArr.push(i+j);
+					}
 				}
-				if(countInRow > 2) {
-					let tempArr = [];
-					for(let s=0; s<countInRow; s+=1) tempArr.push(i+s)
+				if(delIdxArr.length > 2){
 					result.push({
-						length: countInRow,
+						length: delIdxArr.length,
 						type: currentType,
-						idxArr: tempArr
+						idxArr: angular.copy(delIdxArr)
 					});
-					i+= countInRow-1;
-					countInRow = 0;
-					continue next;
 				}
-				countInRow = 0;
+				delIdxArr.length = 0;
 			}
 		}
 
 		/**
 		 * Функция проверяет на вертикальные совпадения
 		 */
-		function countRepeatInCol(arr, result, size){
-			next: for(let count=0,i=0; i<arr.length; i+=1){
-				if(i > 0 && i%size === 0) count++;
-				let rowIdx = (i%size)*size + count;
-				let countInCol = 1;
-				let currentType = arr[rowIdx].type;
+		function countRepeatInCol(result){
+			let size = _self.size;
 
-				for(let j=1; j<(size-rowIdx/size); j+=1){
-					if(arr[rowIdx+size*j].type !== currentType) break;
-					countInCol++;
+			for(let i=0; i<size; i+=1) {
+				let delIdxArr = [i], currentType = _mm[i].type;
+
+				next: for (let j = 1; j < size; j += 1) {
+					if (_mm[i + j * size].type === 'empty' || currentType !== _mm[i + j * size].type) {
+						if (delIdxArr.length > 2) break;
+						delIdxArr.length = 0;
+						delIdxArr.push(i + j * size);
+						currentType = _mm[i + j * size].type;
+						continue next;
+					} else {
+						delIdxArr.push(i + j * size);
+					}
 				}
-				if(countInCol > 2) {
-					let tempArr = [];
-					for(let s=0; s<countInCol; s+=1) tempArr.push(rowIdx+size*s)
+				if (delIdxArr.length > 2) {
 					result.push({
-						length: countInCol,
+						length: delIdxArr.length,
 						type: currentType,
-						idxArr: tempArr
+						idxArr: angular.copy(delIdxArr)
 					});
-					i+= countInCol-1;
-					countInCol = 0;
-					continue next;
 				}
-				countInCol = 0;
+				delIdxArr.length = 0;
 			}
 		}
 
@@ -153,24 +161,27 @@
 		 * Метод сервиса возвращает новый массив длиной size*size
 		 */
 		this.createNewArr = function (size) {
-			let arr = [];
+			_mm.length = 0;
+			this.size = size || drFiledFactory.size;
 
 			for(let i=0; i<size*size; i++)
-				createElement(arr, size, i);
+				createElement(i);
 
-			setCoordsToElements(arr, size);
+			setCoordsToElements();
 
-			return arr;
+			return _mm;
 		};
 
 		/**
 		 * Задаем состояние ближайшим элементам от выделенного
 		 */
-		this.markClosestCell = function(arr, size, idx, state){
-			if(arr[idx-size]) arr[idx-size].state = state;
-			if(arr[idx+size]) arr[idx+size].state = state;
-			if(arr[idx-1]) arr[idx-1].state = state;
-			if(arr[idx+1]) arr[idx+1].state = state;
+		this.markClosestCell = function(idx, state){
+			let size = _self.size;
+
+			if(_mm[idx-size]) _mm[idx-size].state = state;
+			if(_mm[idx+size]) _mm[idx+size].state = state;
+			if(_mm[idx-1]) _mm[idx-1].state = state;
+			if(_mm[idx+1]) _mm[idx+1].state = state;
 		};
 
 		/**
@@ -178,60 +189,124 @@
 		 * - сначала меняем параментры col/row (для анимаци).
 		 * - после по таймауту меняем данные объектов в самом массиве (фигуру)
 		 */
-		this.replaceElements = function(arr, idx1, idx2){
-			let elem1 = {col: arr[idx1].col, row: arr[idx1].row, type: arr[idx1].type, state: arr[idx1].state};
-			let elem2 = {col: arr[idx2].col, row: arr[idx2].row, type: arr[idx2].type, state: arr[idx2].state};
+		this.replaceElements = function(idx1, idx2){
+			let temp = {
+				col1: _mm[idx1].col,
+				row1: _mm[idx1].row,
+				col2: _mm[idx2].col,
+				row2: _mm[idx2].row
+			};
 
-			arr[idx1].col = elem2.col;
-			arr[idx1].row = elem2.row;
+			_mm[idx1].col = temp.col2;
+			_mm[idx1].row = temp.row2;
 
-			arr[idx2].col = elem1.col;
-			arr[idx2].row = elem1.row;
+			_mm[idx2].col = temp.col1;
+			_mm[idx2].row = temp.row1;
 
-			/**
-			 * Время таймаута - время анимации движения элементов во время смены позиций
-			 */
-			$timeout(()=>{
-				let copyEl = angular.copy(arr[idx1]);
-				arr[idx1] = arr[idx2];
-				arr[idx2] = copyEl;
+			_mm.sort(sortArrByRowCol);
 
-				let delLines = this.checkRowElements(arr);
+			recurDeleteEl();
 
-				this.deleteElements(arr, delLines);
 
-			}, 200)
 		};
+
+		function recurDeleteEl(){
+
+		}
 
 		/**
 		 * Проверяем на объекты одинакового типа в строках
 		 */
-		this.checkRowElements = function(arr){
+		function recurDeleteEl(){
 			let result = [];
-			let size = drFiledFactory.size;
 
-			countRepeatInRow(arr, result, size);
-			countRepeatInCol(arr, result, size);
+			countRepeatInRow(result);
+			countRepeatInCol(result);
 
-			return result;
-		};
+			if(!result.length) return false;
+
+			_self.deleteElements(result);
+
+			_self.moveTopEl();
+
+			_mm.sort(sortArrByRowCol);
+
+			recurDeleteEl();
+		}
 
 		/**
 		 * Удаляем объекты одинакового типа, если их больше трёх в строке или в колонке
 		 */
-		this.deleteElements = function(arr, delArr){
+		this.deleteElements = function(delArr){
 			for(let i=0; i<delArr.length; i+=1){
 				let line = delArr[i];
 
-				for(let j=0; j<line.idxArr.length; j+=1){
-					let delIdx = line.idxArr[j];
-					arr[delIdx].type = 'empty';
-					// delete arr[delIdx];
+				// удаляемым ячейкам присваиваем тип "empty"
+				for(let j=0; j<line.idxArr.length; j+=1)
+					_mm[ line.idxArr[j] ].type = 'empty';
+
+				// Устанавливаем им статус "default"
+				for(let j=0; j<_mm.length; j+=1)
+					_mm[j].state = 'default';
+			}
+		};
+
+		/**
+		 * Если над пустыми местами остались фигуры - опускаем их
+		 */
+		this.moveTopEl = function(){
+			// Массив, который хранит индексы с пустыми элементами
+			let size = drFiledFactory.size;
+
+			next: for(let count=0,i=0,emptyCount=0, emptyStartIdx; i<_mm.length; i+=1){
+				if(i > 0 && i%size === 0) {
+					emptyStartIdx = undefined;
+					emptyCount = 0;
+					count++;
 				}
-				for(let j=0; j<arr.length; j+=1){
-					arr[j].state = 'default';
+
+				let rowIdx = (i%size)*size + count;
+
+				if(_mm[rowIdx].type === 'empty') {
+					if(!emptyStartIdx) emptyStartIdx = rowIdx;
+					emptyCount++;
+				}
+
+				// Проверка на последний элемент в столбце
+				if( i > 0 && (i+1)%size === 0 && emptyCount > 0 ){
+					moveElements(emptyStartIdx, emptyCount)
 				}
 			}
 		};
+
+		function moveElements(emptyStartIdx, emptyCount){
+			let size = drFiledFactory.size;
+			// console.log('Работаем со столбцом ', count);
+			let countOfMovableEl = Math.floor(emptyStartIdx/size);
+			// console.log('Передвигаем ', countOfMovableEl, ' елементов в стоблце ', count);
+
+			for(let i=0, c=emptyStartIdx; i<emptyCount; i+=1){
+				_mm[c].row -= countOfMovableEl;
+				c +=size;
+			}
+			for(let i=0, c=emptyStartIdx; i<countOfMovableEl; i+=1){
+				c -= size;
+				_mm[c].row += emptyCount;
+			}
+
+			// console.log('Генерируем ', emptyCount, ' новых элементов в стоблце ', count);
+		}
+
+		/**
+		 * Сортировка массива по значения obj.row и obj.col элементов. Используется после перестановок и удалений
+		 * (для синхронизации вьюхи и модели, т.к. на вьюхе при перемещении мы не меняли модель)
+		 */
+		function sortArrByRowCol(a, b){
+			if(a.row !== b.row) {
+				return a.row - b.row
+			} else if(a.row === b.row){
+				return a.col - b.col
+			}
+		}
 	}]);
 })();

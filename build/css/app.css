@@ -220,9 +220,7 @@ dr-field,
   position: relative; }
   .cell-list__item {
     position: absolute;
-    outline: none;
-    -webkit-transition: all .2s linear;
-            transition: all .2s linear; }
+    outline: none; }
 
 ul, li {
   list-style: none;
