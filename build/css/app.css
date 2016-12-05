@@ -158,6 +158,24 @@ table {
   100% {
     background-color: aliceblue; } }
 
+@-webkit-keyframes deleteState {
+  0% {
+    background-color: lightpink; }
+  50% {
+    background-color: lightpink;
+    opacity: .2; }
+  100% {
+    background-color: lightpink; } }
+
+@keyframes deleteState {
+  0% {
+    background-color: lightpink; }
+  50% {
+    background-color: lightpink;
+    opacity: .2; }
+  100% {
+    background-color: lightpink; } }
+
 .dr-cell,
 dr-cell,
 [dr-cell] {
@@ -188,6 +206,9 @@ dr-cell,
   .cell_state-note {
     -webkit-animation: noteState 3.0s linear infinite;
             animation: noteState 3.0s linear infinite; }
+  .cell_state-delete {
+    -webkit-animation: deleteState .5s linear infinite;
+            animation: deleteState .5s linear infinite; }
   .cell__fig {
     position: absolute;
     top: 50%;
@@ -220,12 +241,18 @@ dr-field,
   position: relative; }
   .cell-list__item {
     position: absolute;
-    outline: none; }
+    outline: none;
+    -webkit-transition: all .2s linear;
+            transition: all .2s linear; }
 
 ul, li {
   list-style: none;
   padding: 0;
   margin: 0; }
+
+html, body {
+  min-height: 100%;
+  background-color: whitesmoke; }
 
 body {
   padding-top: 40px;

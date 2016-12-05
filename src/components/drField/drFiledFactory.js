@@ -10,7 +10,7 @@
 			circle: 30
 		};
 
-		let size = 9;
+		let size = 5;
 
 		return {
 			types: types,

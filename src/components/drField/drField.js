@@ -53,7 +53,6 @@
 			} else if(cell.state === 'passive'){
 				// Клик по ячейке с пассивным статусом
 				this.drFieldService.replaceElements(this.activeCellIdx, idx);
-				for(let i=0; i<this.cells.length; i+=1) this.cells[i].state = 'default';
 				this.$timeout(()=>{
 					// this.drFieldService
 					// TODO: по таймауту реализовать слудеющее поведение: перещенный активный элемент остаётся активным на новом месте

@@ -246,9 +246,15 @@
 
 			recurDeleteEl();
 
-			generateNewEl();
+			// $timeout(()=>{
+			// 	_mm.sort(sortArrByRowCol);
+			//
+			// 	recurDeleteEl();
+			// }, 200);
 
-			recurDeleteEl(); // временный хак
+			// generateNewEl();
+
+			//recurDeleteEl(); // временный хак
 		};
 
 		/**
@@ -270,17 +276,48 @@
 			countRepeatInRow(result);
 			countRepeatInCol(result);
 
-			if(!result.length) return false;
+			for (let j = 0; j < _mm.length; j += 1)
+				_mm[j].state = 'default';
 
-			calculatePointsInfo(result);
+			if(!result.length) {
+				let marker = false;
+				for(let i=0; i<_mm.length; i+=1){
+					if(_mm[i].type === 'empty'){
+						marker = true;
+						break;
+					}
+				}
+				if(marker){
+					generateNewEl();
+					recurDeleteEl();
+				}
+				return false;
+			}
 
-			_self.deleteElements(result);
+			$timeout(()=>{
+				markDeleteEl(result);
 
-			_self.moveTopEl();
+				calculatePointsInfo(result);
 
-			_mm.sort(sortArrByRowCol);
+				$timeout(()=>{
+					_self.deleteElements(result);
 
-			recurDeleteEl();
+					_self.moveTopEl();
+
+					_mm.sort(sortArrByRowCol);
+
+					recurDeleteEl();
+				}, 500);
+			}, 250);
+		}
+
+		function markDeleteEl(result){
+			for (let i = 0; i < result.length; i += 1) {
+				let obj = result[i];
+				for (let j = 0; j < obj.idxArr.length; j += 1) {
+					_mm[obj.idxArr[j]].state = 'delete';
+				}
+			}
 		}
 
 		function calculatePointsInfo(result){

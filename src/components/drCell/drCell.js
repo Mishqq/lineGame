@@ -19,7 +19,6 @@
 	class drCellCtrl{
 		constructor($scope, $timeout){}
 
-
 		/**
 		 * Используем на вьюхе, возвращает css-классы для типа и состояния ячейки
 		 */

@@ -34,6 +34,15 @@ $cellTriangleBgColor: aliceblue
 	100%
 		background-color: $cellCircleBgColor
 
+@keyframes deleteState
+	0%
+		background-color: lightpink
+	50%
+		background-color: lightpink
+		opacity: .2
+	100%
+		background-color: lightpink
+
 .dr-cell,
 dr-cell,
 [dr-cell]
@@ -63,6 +72,8 @@ dr-cell,
 		animation: passiveState 1.0s linear infinite
 	&_state-note
 		animation: noteState 3.0s linear infinite
+	&_state-delete
+		animation: deleteState .5s linear infinite
 
 	&__fig
 		position: absolute
