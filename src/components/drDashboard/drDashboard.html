@@ -1,0 +1,18 @@
+<div class="dashboard">
+	<div class="dashboard__row">
+		<div class="dashboard__label">Последние удалённые элементы</div>
+		<div class="dashboard__val">
+			<ul>
+				<li ng-repeat="item in db.points.lastDel track by $index" ng-bind="item"></li>
+			</ul>
+		</div>
+	</div>
+	<div class="dashboard__row">
+		<div class="dashboard__label">Очки за последний ход</div>
+		<div class="dashboard__val" ng-bind="db.points.lastPoints"></div>
+	</div>
+	<div class="dashboard__row">
+		<div class="dashboard__label">Общее количество очков</div>
+		<div class="dashboard__val" ng-bind="db.points.allPoints"></div>
+	</div>
+</div>

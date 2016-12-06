@@ -19,6 +19,18 @@
 		};
 
 		/**
+		 * Сортировка массива по значения obj.row и obj.col элементов. Используется после перестановок и удалений
+		 * (для синхронизации вьюхи и модели, т.к. на вьюхе при перемещении мы не меняли модель)
+		 */
+		function sortArrByRowCol(a, b){
+			if(a.row !== b.row) {
+				return a.row - b.row
+			} else if(a.row === b.row){
+				return a.col - b.col
+			}
+		}
+
+		/**
 		 * Возвращаем рандомный элемент массива
 		 */
 		function returnRandElement(arr){
@@ -66,7 +78,7 @@
 				returnAnotherType(repeatTypes) :
 				returnRandElement(drFiledFactory.types);
 
-			return type;
+			return type || 'square';
 		}
 
 		/**
@@ -187,6 +199,198 @@
 		}
 
 		/**
+		 *  Меняем местами два элемента массива по их индексам
+		 */
+		function shiftToEl(idx1, idx2){
+			let temp = {
+				col1: _mm[idx1].col,
+				row1: _mm[idx1].row,
+				col2: _mm[idx2].col,
+				row2: _mm[idx2].row
+			};
+
+			_mm[idx1].col = temp.col2;
+			_mm[idx1].row = temp.row2;
+
+			$timeout(()=>{
+				_mm[idx2].col = temp.col1;
+				_mm[idx2].row = temp.row1;
+			}, 200);
+		}
+
+		/**
+		 * Генерируем новые элементы
+		 */
+		function generateNewEl(){
+			for(let i=0; i<_mm.length; i+=1){
+				if(_mm[i].type === 'empty'){
+					_mm[i].type = returnTypeForNewElement(i);
+					_mm[i].state = 'new';
+					$timeout(()=>{
+						_mm[i].state = 'default'
+					}, 500)
+				}
+			}
+		}
+
+		/**
+		 * Рекурсивное удаление строк и столбцов одинаковых элементов
+		 */
+		function recurDeleteEl(){
+			let result = [];
+
+			countRepeatInRow(result);
+			countRepeatInCol(result);
+
+			if(result && result.length > 1) checkCrossingLines(result);
+
+			for (let j = 0; j < _mm.length; j += 1)
+				_mm[j].state = 'default';
+
+			if(!result.length) {
+				let marker = false;
+				for(let i=0; i<_mm.length; i+=1){
+					if(_mm[i].type === 'empty'){
+						marker = true;
+						break;
+					}
+				}
+				if(marker){
+					$timeout(()=>{
+						generateNewEl();
+						$timeout(()=>{
+							_mm.sort(sortArrByRowCol);
+
+							recurDeleteEl();
+						}, 500);
+					}, 500);
+				}
+				return false;
+			}
+
+			$timeout(()=>{
+				markDeleteEl(result);
+
+				calculatePointsInfo(result);
+
+				$timeout(()=>{
+					deleteElements(result);
+
+					moveTopEl();
+
+					_mm.sort(sortArrByRowCol);
+
+					recurDeleteEl();
+				}, 500);
+			}, 250);
+		}
+
+		/**
+		 * Задаем статус удаляемым элементам
+		 */
+		function markDeleteEl(result){
+			for (let i = 0; i < result.length; i += 1) {
+				let obj = result[i];
+				for (let j = 0; j < obj.idxArr.length; j += 1) {
+					_mm[obj.idxArr[j]].state = 'delete';
+				}
+			}
+		}
+
+		/**
+		 * Рассчет очков за ход
+		 */
+		function calculatePointsInfo(result){
+			_self.points.lastDel.length = 0;
+			for(let i=0; i<result.length; i+=1){
+				let type = result[i].type;
+				let points = drFiledFactory.pointsMap[type] * result[i].length;
+				_self.points.lastPoints = points;
+				_self.points.allPoints += points;
+				_self.points.lastDel.push(result[i].length + ' ' + type);
+			}
+		}
+
+		/**
+		 * Если над пустыми местами остались фигуры - опускаем их
+		 * Алгоритм:
+		 * - берём столбец и перебираем его снизу
+		 * - если попадаем на пустой элемент, задаём ему позицию .row = shiftCount и увеличиваем счетчик shiftCount
+		 * т.е. если первый пустой элемент - он займет первую строку в стоблце, если второй - вторую и т.д.
+		 * - если попадается не пустой элемент - перемещаем его вниз на shiftCount
+		 */
+		function moveTopEl(){
+			let size = _self.size;
+
+			for(let i=0, shiftCount=0; i<size; i+=1) {
+				next: for (let j = size-1; j >= 0; j -= 1) {
+					if (_mm[i + j * size].type === 'empty') {
+						_mm[i + j * size].toRow = shiftCount;
+						_mm[i + j * size].row = shiftCount;
+						shiftCount++;
+						continue next;
+					}
+					if(shiftCount>0) _mm[i + j * size].row += +shiftCount;
+				}
+				shiftCount = 0;
+			}
+		}
+
+		/**
+		 * Удаляем объекты одинакового типа, если их больше трёх в строке или в колонке
+		 */
+		function deleteElements(delArr){
+			for(let i=0; i<delArr.length; i+=1){
+				let line = delArr[i];
+
+				// удаляемым ячейкам присваиваем тип "empty"
+				for(let j=0; j<line.idxArr.length; j+=1)
+					_mm[ line.idxArr[j] ].type = 'empty';
+
+				// Устанавливаем им статус "default"
+				for(let j=0; j<_mm.length; j+=1)
+					_mm[j].state = 'default';
+			}
+		}
+
+		/**
+		 * Проверка на пересекающиеся строки/столбцы. Приоритет
+		 * - строка/столбец с большей длинной
+		 * - горизонтальная строка (при раверстве длины пересекающихся строки и столбца)
+		 */
+		function checkCrossingLines(result){
+			next: for (let i=0; i<result.length; i+=1) {
+				let line = result[i], length = line.length;
+
+				for(let j=0; j<line.idxArr.length; j+=1){
+					let idx = line.idxArr[j];
+
+					if(i < result.length-1){
+						for (let k=i+1; k<result.length; k+=1) {
+							let line2 = result[k], length2 = line2.length;
+
+							if(!~line2.idxArr.indexOf(idx)){
+								if(length > length2){
+									result.splice(k, 1);
+								} else if(length < length2){
+									result.splice(i, 1);
+									i--;
+									continue next;
+								} else if(length === length2){
+									result.splice(k, 1);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		function getIndexByRowCol(row, col){
+			return row*_self.size + col;
+		}
+
+		/**
 		 * =================================================================== public methods ===========================================================
 		 */
 
@@ -214,13 +418,33 @@
 		/**
 		 * Задаем состояние ближайшим элементам от выделенного
 		 */
-		this.markClosestCell = function(idx, state){
-			let size = _self.size;
+		this.setActiveCell = function(idx, state){
+			for(let i=0; i<_mm.length; i+=1) _mm[i].state = 'default';
 
-			if(_mm[idx-size]) _mm[idx-size].state = state;
-			if(_mm[idx+size]) _mm[idx+size].state = state;
-			if(_mm[idx-1]) _mm[idx-1].state = state;
-			if(_mm[idx+1]) _mm[idx+1].state = state;
+			_mm[idx].state = state ? 'active' : 'default';
+
+			let row = Math.floor(idx/_self.size);
+			let col = idx - Math.floor(idx/_self.size)*_self.size;
+
+			let cState = (state) ? 'passive' : 'default';
+
+			if(col > 0 && col < _self.size-1){
+				_mm[idx - 1].state = cState;
+				_mm[idx + 1].state = cState;
+			} else if(col === 0){
+				_mm[idx + 1].state = cState;
+			} else if(col === _self.size-1){
+				_mm[idx - 1].state = cState;
+			}
+
+			if(row > 0 && row < _self.size-1){
+				_mm[idx - _self.size].state = cState;
+				_mm[idx + _self.size].state = cState;
+			} else if(row === 0){
+				_mm[idx + _self.size].state = cState;
+			} else if(row === _self.size-1){
+				_mm[idx - _self.size].state = cState;
+			}
 		};
 
 		/**
@@ -229,181 +453,13 @@
 		 * - после по таймауту меняем данные объектов в самом массиве (фигуру)
 		 */
 		this.replaceElements = function(idx1, idx2){
-			let temp = {
-				col1: _mm[idx1].col,
-				row1: _mm[idx1].row,
-				col2: _mm[idx2].col,
-				row2: _mm[idx2].row
-			};
-
-			_mm[idx1].col = temp.col2;
-			_mm[idx1].row = temp.row2;
-
-			_mm[idx2].col = temp.col1;
-			_mm[idx2].row = temp.row1;
-
-			_mm.sort(sortArrByRowCol);
-
-			recurDeleteEl();
-
-			// $timeout(()=>{
-			// 	_mm.sort(sortArrByRowCol);
-			//
-			// 	recurDeleteEl();
-			// }, 200);
-
-			// generateNewEl();
-
-			//recurDeleteEl(); // временный хак
-		};
-
-		/**
-		 * Генерируем новые элементы
-		 */
-		function generateNewEl(){
-			for(let i=0; i<_mm.length; i+=1){
-				if(_mm[i].type === 'empty')
-					_mm[i].type = returnTypeForNewElement(i);
-			}
-		}
-
-		/**
-		 * Проверяем на объекты одинакового типа в строках
-		 */
-		function recurDeleteEl(){
-			let result = [];
-
-			countRepeatInRow(result);
-			countRepeatInCol(result);
-
-			for (let j = 0; j < _mm.length; j += 1)
-				_mm[j].state = 'default';
-
-			if(!result.length) {
-				let marker = false;
-				for(let i=0; i<_mm.length; i+=1){
-					if(_mm[i].type === 'empty'){
-						marker = true;
-						break;
-					}
-				}
-				if(marker){
-					generateNewEl();
-					recurDeleteEl();
-				}
-				return false;
-			}
+			shiftToEl(idx1, idx2);
 
 			$timeout(()=>{
-				markDeleteEl(result);
+				_mm.sort(sortArrByRowCol);
 
-				calculatePointsInfo(result);
-
-				$timeout(()=>{
-					_self.deleteElements(result);
-
-					_self.moveTopEl();
-
-					_mm.sort(sortArrByRowCol);
-
-					recurDeleteEl();
-				}, 500);
-			}, 250);
-		}
-
-		function markDeleteEl(result){
-			for (let i = 0; i < result.length; i += 1) {
-				let obj = result[i];
-				for (let j = 0; j < obj.idxArr.length; j += 1) {
-					_mm[obj.idxArr[j]].state = 'delete';
-				}
-			}
-		}
-
-		function calculatePointsInfo(result){
-			_self.points.lastDel.length = 0;
-			for(let i=0; i<result.length; i+=1){
-				let type = result[i].type;
-				let points = drFiledFactory.pointsMap[type] * result[i].length;
-				_self.points.lastPoints = points;
-				_self.points.allPoints += points;
-				_self.points.lastDel.push(result[i].length + ' ' + type);
-			}
-		}
-
-		/**
-		 * Удаляем объекты одинакового типа, если их больше трёх в строке или в колонке
-		 */
-		this.deleteElements = function(delArr){
-			for(let i=0; i<delArr.length; i+=1){
-				let line = delArr[i];
-
-				// удаляемым ячейкам присваиваем тип "empty"
-				for(let j=0; j<line.idxArr.length; j+=1)
-					_mm[ line.idxArr[j] ].type = 'empty';
-
-				// Устанавливаем им статус "default"
-				for(let j=0; j<_mm.length; j+=1)
-					_mm[j].state = 'default';
-			}
+				recurDeleteEl();
+			}, 200);
 		};
-
-		/**
-		 * Если над пустыми местами остались фигуры - опускаем их
-		 */
-		this.moveTopEl = function(){
-			// Массив, который хранит индексы с пустыми элементами
-			let size = drFiledFactory.size;
-
-			next: for(let count=0,i=0,emptyCount=0, emptyStartIdx; i<_mm.length; i+=1){
-				if(i > 0 && i%size === 0) {
-					emptyStartIdx = undefined;
-					emptyCount = 0;
-					count++;
-				}
-
-				let rowIdx = (i%size)*size + count;
-
-				if(_mm[rowIdx].type === 'empty') {
-					if(!emptyStartIdx) emptyStartIdx = rowIdx;
-					emptyCount++;
-				}
-
-				// Проверка на последний элемент в столбце
-				if( i > 0 && (i+1)%size === 0 && emptyCount > 0 ){
-					moveElements(emptyStartIdx, emptyCount)
-				}
-			}
-		};
-
-		function moveElements(emptyStartIdx, emptyCount){
-			let size = drFiledFactory.size;
-			// console.log('Работаем со столбцом ', count);
-			let countOfMovableEl = Math.floor(emptyStartIdx/size);
-			// console.log('Передвигаем ', countOfMovableEl, ' елементов в стоблце ', count);
-
-			for(let i=0, c=emptyStartIdx; i<emptyCount; i+=1){
-				_mm[c].row -= countOfMovableEl;
-				c +=size;
-			}
-			for(let i=0, c=emptyStartIdx; i<countOfMovableEl; i+=1){
-				c -= size;
-				_mm[c].row += emptyCount;
-			}
-
-			// console.log('Генерируем ', emptyCount, ' новых элементов в стоблце ', count);
-		}
-
-		/**
-		 * Сортировка массива по значения obj.row и obj.col элементов. Используется после перестановок и удалений
-		 * (для синхронизации вьюхи и модели, т.к. на вьюхе при перемещении мы не меняли модель)
-		 */
-		function sortArrByRowCol(a, b){
-			if(a.row !== b.row) {
-				return a.row - b.row
-			} else if(a.row === b.row){
-				return a.col - b.col
-			}
-		}
 	}]);
 })();

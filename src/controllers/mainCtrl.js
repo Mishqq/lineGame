@@ -23,13 +23,5 @@
 
 	};
 
-	mainCtrl.prototype.newGame = function(e, size){
-		e.preventDefault();
-		e.stopPropagation();
-		this.drFiledFactory.size = size;
-		this.drFieldService.createNewArr(size);
-		this.drFieldService.reset();
-	};
-
 	mainCtrl.$inject = ['$scope', '$http', '$state', '$stateParams', '$timeout', 'drFiledFactory', 'drFieldService'];
 })();
